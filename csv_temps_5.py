@@ -1,71 +1,63 @@
+import csv_functions as fn
 import matplotlib.pyplot as plt 
 import csv 
 from datetime import datetime
 
-open_file = open("death_valley_2018_simple.csv", "r")
+##---------------------------------------------------------------------
+## GET INFO FOR DEATH VALLEY
+##---------------------------------------------------------------------
+d_open_file = open("death_valley_2018_simple.csv", "r")
 
-csv_file = csv.reader(open_file, delimiter=",")
+d_csv_file = csv.reader(d_open_file, delimiter=",")
 
-header_row = next(csv_file)
+tmax, tmin, title_index, date_index, = fn.get_headers(d_csv_file)
 
-##print(type(header_row)) --> list
+d_highs = []
+d_lows  = []
+d_dates = []
 
-for index,column_header in enumerate(header_row):
-    if column_header == "TMAX":
-        tmax = index
-    if column_header == "TMIN":
-        tmin = index
-    if column_header == "NAME":
-        title_index = index
-    if column_header == "DATE":
-        date_index = index
-    if column_header == "NAME":
-        title_index == index
+d_highs, d_lows, d_dates, d_title = fn.get_data(d_csv_file,d_highs,d_lows,d_dates,tmax,tmin,date_index,title_index)
 
-    ##print(index,column_header) --> index number and the column header
+##---------------------------------------------------------------------
+## GET INFO FOR SITKA
+##---------------------------------------------------------------------
+s_open_file = open("sitka_weather_2018_simple.csv", "r")
 
-highs = []
-lows  = []
-dates = []
+s_csv_file = csv.reader(s_open_file, delimiter=",")
 
-for row in csv_file:
-    try:
-        high=int(row[tmax])
-        low=int(row[tmin])
-        current_date = datetime.strptime(row[date_index], '%Y-%m-%d')
-        title_name = row[title_index]
+tmax, tmin, title_index, date_index = fn.get_headers(s_csv_file)
 
-    except ValueError:
-        print(f"Missing data for {current_date}")
-        
-    else:
-        highs.append(high)
-        lows.append(low)
-        dates.append(current_date)
+s_highs = []
+s_lows  = []
+s_dates = []
 
+s_highs, s_lows, s_dates, s_title = fn.get_data(s_csv_file,s_highs,s_lows,s_dates,tmax,tmin,date_index,title_index)
 
-## NEED TO FIGURE OUT SUB-PLOTS
+## Create figure for subplots
+fig,(ax1,ax2)= plt.subplots(2,sharex=True)
+fig.suptitle(f"Temperature comparison between {s_title} and {d_title}")
 
+## SITKA SUBPLOT
 
+ax1.plot(s_dates,s_highs,color='red',alpha=0.5) ## data on plot
+ax1.plot(s_dates,s_lows,color='blue',alpha=0.5) ## data on plot
+ax1.fill_between(s_dates,s_highs,s_lows,facecolor='blue',alpha=0.1) 
 
-fig = plt.figure()
+ax1.set_title(s_title,fontsize=10)
 
-plt.plot(dates,highs,color='red',alpha=0.5)
-plt.plot(dates,lows,color="blue",alpha=0.5)
+## DEATH VALLEY SUBPLOT
 
-plt.fill_between(dates,highs,lows,facecolor='blue',alpha=0.1) ## 1 axis, 2 y axis points so it can fill between the y axis points
+ax2.plot(d_dates,d_highs,color='red',alpha=0.5) ## data on plot
+ax2.plot(d_dates,d_lows,color='blue',alpha=0.5) ## data on plot
+ax2.fill_between(d_dates,d_highs,d_lows,facecolor='blue',alpha=0.1) 
 
-## dynamic title grab
-plt.title(f"Daily High Temps for {title_name} 2018",fontsize=16)
-
-## Axis Labels
-plt.xlabel("",fontsize=12)
-plt.ylabel("Temperature (F)",fontsize=12)
+ax2.set_title(d_title,fontsize=10)
 
 ## Tick parks
 plt.tick_params(axis='both',which="major",labelsize=12)
 
 ## Additional Formatting
-fig.autofmt_xdate() ## what is on the x axis is a date, so format correctly; draws the date labels diagonally to prevent them from overlapping
+fig.autofmt_xdate()
 
+## Show
 plt.show()
